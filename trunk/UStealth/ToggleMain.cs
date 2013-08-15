@@ -144,19 +144,25 @@ namespace UStealth
                     //Read boot sector and confirm whether it's a hidden, normal or unknown type
                     byte[] bufR = new byte[512];
                     bufR = ReadBoot(strDev);
-                    if (bufR[511] == 170)
-                    {//Normal partition
-                        strSta = "NORMAL";
-                    }
-                    else if (bufR[511] == 171)
-                    {//Hidden partition
-                        strSta = "HIDDEN";
-                    }
-                    else
-                    {//Unknown partition type - this will be disabled for toggle
+                    if (bufR == null)
+                    {
                         strSta = "*UNKNOWN*";
                     }
-
+                    else
+                    {
+                        if (bufR[511] == 170)
+                        {//Normal partition
+                            strSta = "NORMAL";
+                        }
+                        else if (bufR[511] == 171)
+                        {//Hidden partition
+                            strSta = "HIDDEN";
+                        }
+                        else
+                        {//Unknown partition type - this will be disabled for toggle
+                            strSta = "*UNKNOWN*";
+                        }
+                    }
                     dt.Rows.Add(new object[] { strIsSys, strInt, strMod, strMed, strSiz, strSta, strDev });
                     strIsSys = "";
                 }
@@ -207,20 +213,31 @@ namespace UStealth
             uint GENERIC_READ = 0x80000000;
             uint OPEN_EXISTING = 3;
 
-            SafeFileHandle handleValue = CreateFile(strDev, GENERIC_READ, 0, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
-            if (handleValue.IsInvalid)
+            try
             {
-                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+
+                SafeFileHandle handleValue = CreateFile(strDev, GENERIC_READ, 0, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+                if (handleValue.IsInvalid)
+                {
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
+
+                int offset = 0;
+                byte[] buf = new byte[512];
+                int read = 0;
+                int moveToHigh;
+                SetFilePointer(handleValue, offset, out moveToHigh, EMoveMethod.Begin);
+                ReadFile(handleValue, buf, 512, out read, IntPtr.Zero);
+                handleValue.Close();
+                return buf;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Unable to get handle on or read the following drive: " + strDev + ".\rError details: " + e.Message.ToString()
+                ,"Error",MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
             }
 
-            int offset = 0;
-            byte[] buf = new byte[512];
-            int read = 0;
-            int moveToHigh;
-            SetFilePointer(handleValue, offset, out moveToHigh, EMoveMethod.Begin);
-            ReadFile(handleValue, buf, 512, out read, IntPtr.Zero);
-            handleValue.Close();
-            return buf;
         }
 
         /// <summary>
@@ -231,6 +248,10 @@ namespace UStealth
         {
             byte[] bufR = new byte[512];
             bufR = ReadBoot(dg1.CurrentRow.Cells[6].Value.ToString());
+            if (bufR == null)
+            {
+                return;
+            }
             if (bufR[510].ToString() + bufR[511].ToString() == "85170")
             {//55AA - normal partition
                 if (MessageBox.Show("Are you sure you want to hide the drive: " + strDriveDetails + "?", "Please confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
