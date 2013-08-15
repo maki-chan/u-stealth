@@ -1,0 +1,9 @@
+C:\Sources\UStealth\UStealth\bin\Debug\UStealth.exe.config
+C:\Sources\UStealth\UStealth\bin\Debug\UStealth.exe
+C:\Sources\UStealth\UStealth\bin\Debug\UStealth.pdb
+C:\Sources\UStealth\UStealth\obj\x86\Debug\UStealth.Properties.Resources.resources
+C:\Sources\UStealth\UStealth\obj\x86\Debug\UStealth.ToggleMain.resources
+C:\Sources\UStealth\UStealth\obj\x86\Debug\UStealth.csproj.GenerateResource.Cache
+C:\Sources\UStealth\UStealth\obj\x86\Debug\UStealth.exe
+C:\Sources\UStealth\UStealth\obj\x86\Debug\UStealth.pdb
+C:\Sources\UStealth\UStealth\obj\x86\Debug\UStealth.csprojResolveAssemblyReference.cache
