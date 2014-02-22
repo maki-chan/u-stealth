@@ -81,6 +81,7 @@ namespace UStealth
 
         public DataTable GetDriveList()
         {
+            int intBps;
             string strIsSys = "", strInt, strMod, strMed, strSiz, strSta = "", strDev;
             decimal decSiz;
             string sysDevice = "";
@@ -103,6 +104,7 @@ namespace UStealth
             dt.Columns.Add("Size");
             dt.Columns.Add("Status");
             dt.Columns.Add("DeviceID");
+            dt.Columns.Add("BytesPerSector");
 
             try
             {
@@ -112,7 +114,16 @@ namespace UStealth
 
                 foreach (ManagementObject mObj in mObjS.Get())
                 {
-                    strInt = mObj["InterfaceType"].ToString();
+                    if (mObj["InterfaceType"] == null)
+                    {
+                        strInt = "Null";
+                    }
+                    else
+                    {
+                        strInt = mObj["InterfaceType"].ToString();
+                    }
+                    intBps = Convert.ToInt32(mObj["BytesPerSector"]);
+
                     strMod = mObj["Model"].ToString();
                     strMed = mObj["MediaType"].ToString();
                     strDev = mObj["DeviceID"].ToString();
@@ -142,8 +153,8 @@ namespace UStealth
                         strIsSys = "*SYSTEM*";
                     }
                     //Read boot sector and confirm whether it's a hidden, normal or unknown type
-                    byte[] bufR = new byte[512];
-                    bufR = ReadBoot(strDev);
+                    byte[] bufR = new byte[intBps];
+                    bufR = ReadBoot(strDev,intBps);
                     if (bufR == null)
                     {
                         strSta = "*UNKNOWN*";
@@ -163,7 +174,7 @@ namespace UStealth
                             strSta = "*UNKNOWN*";
                         }
                     }
-                    dt.Rows.Add(new object[] { strIsSys, strInt, strMod, strMed, strSiz, strSta, strDev });
+                    dt.Rows.Add(new object[] { strIsSys, strInt, strMod, strMed, strSiz, strSta, strDev, intBps });
                     strIsSys = "";
                 }
             }
@@ -201,14 +212,14 @@ namespace UStealth
                 MessageBox.Show("You cannot make changes to an unknown boot sector type!", "Impossibru!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
-            ToggleBoot(dg1.CurrentRow.Cells[4].Value.ToString() + " " + dg1.CurrentRow.Cells[1].Value.ToString() + " drive, model " + dg1.CurrentRow.Cells[2].Value.ToString() );
+            ToggleBoot(dg1.CurrentRow.Cells[4].Value.ToString() + " " + dg1.CurrentRow.Cells[1].Value.ToString() + " drive, model " + dg1.CurrentRow.Cells[2].Value.ToString(), Convert.ToInt32(dg1.CurrentRow.Cells[7].Value.ToString()));
         }
 
         /// <summary>
         /// Reads the boot sector of the chosen drive
         /// </summary>
-        /// <returns>returns a 512k byte array of the first sector of the drive</returns>
-        public byte[] ReadBoot(string strDev)
+        /// <returns>returns an [intBps] byte array of the first sector of the drive</returns>
+        public byte[] ReadBoot(string strDev, int intBps)
         {
             uint GENERIC_READ = 0x80000000;
             uint OPEN_EXISTING = 3;
@@ -223,11 +234,11 @@ namespace UStealth
                 }
 
                 int offset = 0;
-                byte[] buf = new byte[512];
+                byte[] buf = new byte[intBps];
                 int read = 0;
                 int moveToHigh;
                 SetFilePointer(handleValue, offset, out moveToHigh, EMoveMethod.Begin);
-                ReadFile(handleValue, buf, 512, out read, IntPtr.Zero);
+                ReadFile(handleValue, buf, intBps, out read, IntPtr.Zero);
                 handleValue.Close();
                 return buf;
             }
@@ -244,10 +255,10 @@ namespace UStealth
         /// Toggles boot signature from 55AA to 55AB and back.  Checks for valid boot signature.
         /// Calls ReadBoot to read the current boot sector and wrBoot to write the new boot sector.
         /// </summary>
-        public void ToggleBoot(string strDriveDetails)
+        public void ToggleBoot(string strDriveDetails,int intBps)
         {
-            byte[] bufR = new byte[512];
-            bufR = ReadBoot(dg1.CurrentRow.Cells[6].Value.ToString());
+            byte[] bufR = new byte[intBps];
+            bufR = ReadBoot(dg1.CurrentRow.Cells[6].Value.ToString(),intBps);
             if (bufR == null)
             {
                 return;
@@ -259,7 +270,7 @@ namespace UStealth
                     return;
                 }
                 bufR[511] = 171;
-                if (wrBoot (bufR) == 99) 
+                if (wrBoot (bufR,intBps) == 99) 
                 {//success
                     MessageBox.Show("Partition was hidden.  You will only be able to access this partition with Wii USB loaders that support it.  "
                     + "Be warned that Windows may ask if you want to format the drive when you insert it next time since it is hidden.  The obvious answer to that "
@@ -278,7 +289,7 @@ namespace UStealth
             else if (bufR[510].ToString() + bufR[511].ToString() == "85171") 
             {//55AB - hidden partition
                 bufR[511] = 170;
-                if (wrBoot (bufR) == 99)
+                if (wrBoot (bufR,intBps) == 99)
                 {//success
                 MessageBox.Show("Partition was unhidden successfully.  You can now access this partition from anywhere.", "Done",MessageBoxButtons.OK,MessageBoxIcon.Information);
                 PopulateDriveListBox();
@@ -302,7 +313,7 @@ namespace UStealth
         /// </summary>
         /// <param name="bufToWrite">The modified data to write to the partition</param>
         /// <returns>1 = can't get disk handle, 2 = can't lock the device for edit, 3 = no change after edit, 99 = all good/returns>
-        public int wrBoot(byte[] bufToWrite)
+        public int wrBoot(byte[] bufToWrite, int intBps)
         {
             uint GENERIC_WRITE = 0x40000000;
             uint FSCTL_LOCK_VOLUME = 0x00090018;
@@ -333,13 +344,13 @@ namespace UStealth
             SetFilePointer(handleValue, offset, out moveToHigh, EMoveMethod.Begin);
 
             ///Pointer set, write to the boot sector
-            WriteFile(handleValue, bufToWrite, 512, out bytesWritten, IntPtr.Zero);
+            WriteFile(handleValue, bufToWrite, intBps, out bytesWritten, IntPtr.Zero);
             handleValue.Close();   
             
             //Verify what was written here
-            byte [] bufVerify = new byte [512];
-            bufVerify = ReadBoot(strDev);
-            if (bufVerify[511] == bufToWrite[510])
+            byte[] bufVerify = new byte[intBps];
+            bufVerify = ReadBoot(strDev,intBps);
+            if (bufVerify[intBps-1] == bufToWrite[intBps-2])
             {//nothing changed - something went wrong
                 MessageBox.Show("On verify, it appears that nothing has changed.  Somehow I was unable to toggle the boot sector.", "Verify", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return 3; //nothing appears to have happened
@@ -349,5 +360,8 @@ namespace UStealth
                 return 99;
             }
         }
+
+
+
     }
 }
