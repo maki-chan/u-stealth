@@ -122,59 +122,63 @@ namespace UStealth
                     {
                         strInt = mObj["InterfaceType"].ToString();
                     }
+                    strInt = mObj["InterfaceType"] != null ? mObj["InterfaceType"].ToString() : null;
                     intBps = Convert.ToInt32(mObj["BytesPerSector"]);
-
                     strMod = mObj["Model"].ToString();
-                    strMed = mObj["MediaType"].ToString();
-                    strDev = mObj["DeviceID"].ToString();
-                    decSiz = Convert.ToDecimal(mObj["Size"].ToString());
-                    if (decSiz > 999999999999)
+                    if (mObj["MediaType"] != null)
                     {
-                        strSiz = Math.Round((decSiz / 1000000000000), 1).ToString() + " TB";
-                    }
-                    else if (decSiz > 999999999)
-                    {
-                        strSiz = Math.Round((decSiz / 1000000000), 1).ToString() + " GB";
-                    }
-                    else if (decSiz > 999999)
-                    {
-                        strSiz = Math.Round((decSiz / 1000000), 1).ToString() + " MB";
-                    }
-                    else if (decSiz > 999)
-                    {
-                        strSiz = Math.Round((decSiz / 1000), 1).ToString() + " KB";
-                    }
-                    else
-                    {
-                        strSiz = Math.Round(decSiz, 1).ToString();
-                    }
-                    if (strDev == sysDevice)
-                    {
-                        strIsSys = "*SYSTEM*";
-                    }
-                    //Read boot sector and confirm whether it's a hidden, normal or unknown type
-                    byte[] bufR = new byte[intBps];
-                    bufR = ReadBoot(strDev,intBps);
-                    if (bufR == null)
-                    {
-                        strSta = "*UNKNOWN*";
-                    }
-                    else
-                    {
-                        if (bufR[511] == 170)
-                        {//Normal partition
-                            strSta = "NORMAL";
+                        strMed = mObj["MediaType"].ToString();
+                        strDev = mObj["DeviceID"].ToString();
+                        decSiz = Convert.ToDecimal(mObj["Size"].ToString());
+                        if (decSiz > 999999999999)
+                        {
+                            strSiz = Math.Round((decSiz / 1000000000000), 1).ToString() + " TB";
                         }
-                        else if (bufR[511] == 171)
-                        {//Hidden partition
-                            strSta = "HIDDEN";
+                        else if (decSiz > 999999999)
+                        {
+                            strSiz = Math.Round((decSiz / 1000000000), 1).ToString() + " GB";
+                        }
+                        else if (decSiz > 999999)
+                        {
+                            strSiz = Math.Round((decSiz / 1000000), 1).ToString() + " MB";
+                        }
+                        else if (decSiz > 999)
+                        {
+                            strSiz = Math.Round((decSiz / 1000), 1).ToString() + " KB";
                         }
                         else
-                        {//Unknown partition type - this will be disabled for toggle
+                        {
+                            strSiz = Math.Round(decSiz, 1).ToString();
+                        }
+                        if (strDev == sysDevice)
+                        {
+                            strIsSys = "*SYSTEM*";
+                        }
+                        //Read boot sector and confirm whether it's a hidden, normal or unknown type
+                        byte[] bufR = new byte[intBps];
+                        bufR = ReadBoot(strDev, intBps);
+                        if (bufR == null)
+                        {
                             strSta = "*UNKNOWN*";
                         }
+                        else
+                        {
+                            if (bufR[511] == 170)
+                            {//Normal partition
+                                strSta = "NORMAL";
+                            }
+                            else if (bufR[511] == 171)
+                            {//Hidden partition
+                                strSta = "HIDDEN";
+                            }
+                            else
+                            {
+                                //Unknown partition type - this will be disabled for toggle
+                                strSta = "*UNKNOWN*";
+                            }
+                        }
+                        dt.Rows.Add(new object[] { strIsSys, strInt, strMod, strMed, strSiz, strSta, strDev, intBps });
                     }
-                    dt.Rows.Add(new object[] { strIsSys, strInt, strMod, strMed, strSiz, strSta, strDev, intBps });
                     strIsSys = "";
                 }
             }
@@ -350,7 +354,7 @@ namespace UStealth
             //Verify what was written here
             byte[] bufVerify = new byte[intBps];
             bufVerify = ReadBoot(strDev,intBps);
-            if (bufVerify[intBps-1] == bufToWrite[intBps-2])
+            if (bufVerify[511] == bufToWrite[510])
             {//nothing changed - something went wrong
                 MessageBox.Show("On verify, it appears that nothing has changed.  Somehow I was unable to toggle the boot sector.", "Verify", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return 3; //nothing appears to have happened
