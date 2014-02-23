@@ -114,14 +114,6 @@ namespace UStealth
 
                 foreach (ManagementObject mObj in mObjS.Get())
                 {
-                    if (mObj["InterfaceType"] == null)
-                    {
-                        strInt = "Null";
-                    }
-                    else
-                    {
-                        strInt = mObj["InterfaceType"].ToString();
-                    }
                     strInt = mObj["InterfaceType"] != null ? mObj["InterfaceType"].ToString() : null;
                     intBps = Convert.ToInt32(mObj["BytesPerSector"]);
                     strMod = mObj["Model"].ToString();
