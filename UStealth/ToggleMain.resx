@@ -120,6 +120,21 @@
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+<<<<<<< .mine
+  <data name="textBox1.Text" xml:space="preserve">
+    <value>Thanks to all the help from the GBATemp.net community, in particular
+
+OriginalHamster for the icon
+Cyan
+Fix84
+hippojay
+Onion_Knight
+and Air2004 for testing and allowing me to debug on his system
+
+Special thanks to Rob Jansen for debugging and updating the code to support newer drives with larger sectors.
+  -jayjay123</value>
+  </data>
+=======
   <data name="textBox1.Text" xml:space="preserve">
     <value>Thanks to all the help from the GBATemp.net community, in particular
 
@@ -133,6 +148,7 @@ Special thanks to RobJanssen for debugging and updating the code to support newe
 
   -jayjay123</value>
   </data>
+>>>>>>> .r9
   <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

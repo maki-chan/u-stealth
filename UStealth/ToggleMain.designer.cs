@@ -126,7 +126,12 @@
             this.textBox1.Size = new System.Drawing.Size(743, 303);
             this.textBox1.TabIndex = 15;
             this.textBox1.TabStop = false;
+<<<<<<< .mine
             this.textBox1.Text = resources.GetString("textBox1.Text");
+            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+=======
+            this.textBox1.Text = resources.GetString("textBox1.Text");
+>>>>>>> .r9
             // 
             // ToggleMain
             // 
