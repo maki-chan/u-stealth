@@ -114,67 +114,17 @@ namespace UStealth
 
                 foreach (ManagementObject mObj in mObjS.Get())
                 {
-<<<<<<< .mine
-                    if (mObj["InterfaceType"] == null)
-                    {
-                        strInt = "Null";
-                    }
-                    else
-                    {
-                        strInt = mObj["InterfaceType"].ToString();
-                    }
-                    intBps = Convert.ToInt32(mObj["BytesPerSector"]);
-
-=======
                     strInt = mObj["InterfaceType"] != null ? mObj["InterfaceType"].ToString() : null;
                     intBps = Convert.ToInt32(mObj["BytesPerSector"]);
->>>>>>> .r9
                     strMod = mObj["Model"].ToString();
                     if (mObj["MediaType"] != null)
                     {
-<<<<<<< .mine
-                        strSiz = Math.Round((decSiz / 1000000000000), 1).ToString() + " TB";
-                    }
-                    else if (decSiz > 999999999)
-                    {
-                        strSiz = Math.Round((decSiz / 1000000000), 1).ToString() + " GB";
-                    }
-                    else if (decSiz > 999999)
-                    {
-                        strSiz = Math.Round((decSiz / 1000000), 1).ToString() + " MB";
-                    }
-                    else if (decSiz > 999)
-                    {
-                        strSiz = Math.Round((decSiz / 1000), 1).ToString() + " KB";
-                    }
-                    else
-                    {
-                        strSiz = Math.Round(decSiz, 1).ToString();
-                    }
-                    if (strDev == sysDevice)
-                    {
-                        strIsSys = "*SYSTEM*";
-                    }
-                    //Read boot sector and confirm whether it's a hidden, normal or unknown type
-                    byte[] bufR = new byte[intBps];
-                    bufR = ReadBoot(strDev,intBps);
-                    if (bufR == null)
-                    {
-                        strSta = "*UNKNOWN*";
-                    }
-                    else
-                    {
-                        if (bufR[511] == 170)
-                        {//Normal partition
-                            strSta = "NORMAL";
-=======
                         strMed = mObj["MediaType"].ToString();
                         strDev = mObj["DeviceID"].ToString();
                         decSiz = Convert.ToDecimal(mObj["Size"].ToString());
                         if (decSiz > 999999999999)
                         {
                             strSiz = Math.Round((decSiz / 1000000000000), 1).ToString() + " TB";
->>>>>>> .r9
                         }
                         else if (decSiz > 999999999)
                         {
@@ -220,12 +170,8 @@ namespace UStealth
                             }
                         }
                         dt.Rows.Add(new object[] { strIsSys, strInt, strMod, strMed, strSiz, strSta, strDev, intBps });
+                        strIsSys = "";
                     }
-<<<<<<< .mine
-                    dt.Rows.Add(new object[] { strIsSys, strInt, strMod, strMed, strSiz, strSta, strDev, intBps });
-=======
->>>>>>> .r9
-                    strIsSys = "";
                 }
             }
             catch (ManagementException)
@@ -398,15 +344,9 @@ namespace UStealth
             handleValue.Close();   
             
             //Verify what was written here
-<<<<<<< .mine
             byte[] bufVerify = new byte[intBps];
             bufVerify = ReadBoot(strDev,intBps);
             if (bufVerify[intBps-1] == bufToWrite[intBps-2])
-=======
-            byte[] bufVerify = new byte[intBps];
-            bufVerify = ReadBoot(strDev,intBps);
-            if (bufVerify[511] == bufToWrite[510])
->>>>>>> .r9
             {//nothing changed - something went wrong
                 MessageBox.Show("On verify, it appears that nothing has changed.  Somehow I was unable to toggle the boot sector.", "Verify", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return 3; //nothing appears to have happened
@@ -416,19 +356,10 @@ namespace UStealth
                 return 99;
             }
         }
-<<<<<<< .mine
-
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
 
         }
 
-
-
-=======
-
-
-
->>>>>>> .r9
     }
 }

@@ -92,6 +92,7 @@
     </Compile>
     <EmbeddedResource Include="ToggleMain.resx">
       <DependentUpon>ToggleMain.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="app.manifest" />
